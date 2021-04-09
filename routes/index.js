@@ -7,8 +7,8 @@ var userModule = require('../modules/user');
 function checkUsername(req, res, next) {
   var username = req.body.username;
   var checkExistingUsername = userModule.findOne({ username: username});
-  checkExistingUsername.exec((err, data) => {
-    if(err) throw err;
+  checkExistingUsername.exec((error, data) => {
+    if(error) throw error;
     if(data) {
       return res.render('signup', { title: 'Password Management System', msg:'Username Not Available' });
     }
@@ -20,8 +20,8 @@ function checkUsername(req, res, next) {
 function checkEmail(req, res, next) {
   var email = req.body.email;
   var checkExistingEmail = userModule.findOne({ email: email});
-  checkExistingEmail.exec((err, data) => {
-    if(err) throw err;
+  checkExistingEmail.exec((error, data) => {
+    if(error) throw error;
     if(data) {
       return res.render('signup', { title: 'Password Management System', msg:'Email Already Exists.' });
     }
@@ -31,7 +31,26 @@ function checkEmail(req, res, next) {
 
 /* GET home page. */
 router.get('/', function(req, res, next) {
-  res.render('index', { title: 'Password Management System' });
+  res.render('index', { title: 'Password Management System', msg:"" });
+});
+
+router.post('/', function(req, res, next) {
+  var username = req.body.username;
+  var password = req.body.password;
+
+  var checkUser = userModule.findOne({ username: username});
+  checkUser.exec((error, data) => {
+    if(error) throw error;
+
+    var getPassword = data.password;
+    if(bcrypt.compareSync(password, getPassword)) {
+      res.render('index', { title: 'Password Management System', msg:'User logged in successfully.' });
+      //console.log("Logged in");
+    }else {
+      res.render('index', { title: 'Password Management System', msg:'Invalid Username and Password.' });
+    }
+  });
+  
 });
 
 router.get('/signup', function(req, res, next) {
@@ -54,8 +73,8 @@ router.post('/signup', checkUsername, checkEmail, function(req, res, next) {
       password: password
     });
 
-    userDetails.save((err, doc) => {
-      if(err) throw err;
+    userDetails.save((error, doc) => {
+      if(error) throw error;
       res.status(201).render('signup', { title: 'Password Management System', msg:'User Registered Successfully'});
     });
 
